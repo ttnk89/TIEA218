@@ -1,3 +1,5 @@
+//TIEA218 Viikkotehtävä 5, Taso 1
+
 "use strict"; // estää pahimpia virheitä
 
 window.onload = function() {
