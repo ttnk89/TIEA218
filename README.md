@@ -1,4 +1,4 @@
-# TIEA218
+# TIEA218 Web-sovellukset
 Tehtävänannot ja Linkit sovelluksiin:\
 \
 Javascript ja DOM:\
