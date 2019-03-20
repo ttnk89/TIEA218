@@ -1,3 +1,6 @@
+//TIEA218 Viikkotehtävä 2, Taso 1
+//http://users.jyu.fi/~tutanika/2017/websov/2/taso1.html
+
 "use strict"; // estää pahimpia virheitä
 
 window.onload = function() {
