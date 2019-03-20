@@ -1,0 +1,184 @@
+<!doctype html>
+<head>
+	<meta charset="utf-8">
+	
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.8/react.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.8/react-dom.js"></script>
+	<script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+<!--<script src="https://unpkg.com/react@16/umd/react.development.js"></script>
+	<script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script> -->
+	<!-- <script src="react-json-table.js"></script> -->
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDgrFOd6yjqxDlWNeO-dmzZ1FoaeHecQ0c"></script>
+	
+	<style>
+		table, th, td {border: 1px solid black;
+		}
+		th, td {
+			padding: 5px;
+		}
+		th {
+			 background-color: yellow;
+		}
+	</style>
+	
+	<title>Mashup
+	</title>
+</head>
+<body>
+	<script src="mashup.js"></script>
+	
+	<div id="map" style="width:100%; height:640px"></div>
+  
+	<div id="saakomponentti"></div>
+	
+	<script type="text/babel">
+		
+		var mittausarvot = {
+			"ILMA":0,
+			"TIE_1":0,
+			"MAA_1":0,
+			"KESKITUULI":0,
+			"TUULENSUUNTA":0,
+			"ILMAN_KOSTEUS":0,
+			"NAKYVYYS":0
+		};
+
+		var mittaukset = {
+			"ILMA":0,
+			"TIE_1":2,
+			"MAA_1":6,
+			"KESKITUULI":11,
+			"TUULENSUUNTA":13,
+			"ILMAN_KOSTEUS":14,
+			"NAKYVYYS":19
+		};
+		
+		var items = [
+			{ 'Säätieto': 'Ilman lämpötila', 'sensorValue': mittausarvot.ILMA + ' °C'},
+			{ 'Säätieto': 'Tien lämpötila', 'sensorValue': mittausarvot.TIE_1 + ' °C'},
+			{ 'Säätieto': 'Maan lämpötila', 'sensorValue':mittausarvot.MAA_1 + ' °C'},
+			{ 'Säätieto': 'Tuulennopeus', 'sensorValue':mittausarvot.KESKITUULI + ' m/s'},
+			{ 'Säätieto': 'Tuulen suunta', 'sensorValue':mittausarvot.TUULENSUUNTA + ' °'},
+			{ 'Säätieto': 'Ilmankosteus', 'sensorValue':mittausarvot.ILMAN_KOSTEUS + ' %'},
+			{ 'Säätieto': 'Näkyvyys', 'sensorValue':mittausarvot.NAKYVYYS + ' km'}
+		];
+		
+		var kaupunki_url = {"Jyväskylä":"https://tie.digitraffic.fi/api/v1/data/weather-data/9014", "Kuopio":"https://tie.digitraffic.fi/api/v1/data/weather-data/8001", "Tampere":"https://tie.digitraffic.fi/api/v1/data/weather-data/4020"};
+		
+		var columns = [
+			'Säätieto',
+			{key: 'sensorValue', label: 'Mittaus'}
+		];
+		
+		class List extends React.Component {
+			render() {
+				return (<ul> {
+					this.props.items.map(function(item) {
+						return <li key={item}>{item}</li>
+					})
+				}
+				</ul>);
+			}
+		}
+	
+		class Taulu extends React.Component {
+		
+			constructor(props) {
+				super(props);
+				this.state = { kaupunki: "Jyväskylä"};
+				this.handleChange = this.handleChange.bind(this);
+			}
+			
+			//1. kerralla sivulle tultaessa
+			//hae tiedot
+			//aseta tiedot
+			
+			handleChange(event) {
+				console.log("change start")
+				
+				$.ajax({
+					//valitse url kaupungin perusteella
+					url: kaupunki_url[document.getElementById("Kaupunki").options[document.getElementById("Kaupunki").selectedIndex].value],
+					cache: false,
+					dataType: 'json',
+					success: function(data) {
+						//console.log(data)
+						//käy for loopilla läpi mittaukset
+						//aseta mittausarvoihin
+						for (var key in mittaukset) {
+							if (mittaukset.hasOwnProperty(key)) {
+								mittausarvot[key] = data.weatherStations[0].sensorValues[mittaukset[key]].sensorValue
+							}
+						}
+						this.setState({
+							kaupunki: document.getElementById("Kaupunki").options[document.getElementById("Kaupunki").selectedIndex].value
+						});
+					}.bind(this),
+					error: function(xhr, status, err) {
+						console.log(status, err.toString());
+					}.bind(this)
+				})
+				
+				//console.log("change finished, new location is: " + this.state.kaupunki);
+			}
+			
+			//kutsutaan kun komponentti renderoitu 1. kerran
+			componentDidMount() {
+				console.log("didmount start")
+				$.ajax({
+					//valitse url kaupungin perusteella
+					url: kaupunki_url[document.getElementById("Kaupunki").options[document.getElementById("Kaupunki").selectedIndex].value],
+					cache: false,
+					dataType: 'json',
+					success: function(data) {
+						//this.setState({data: data});
+						//console.log(data)
+						//käy for loopilla läpi mittaukset
+						//aseta mittausarvoihin
+						for (var key in mittaukset) {
+							if (mittaukset.hasOwnProperty(key)) {
+								mittausarvot[key] = data.weatherStations[0].sensorValues[mittaukset[key]].sensorValue
+							}
+						}
+						this.setState ({
+							kaupunki: document.getElementById("Kaupunki").options[document.getElementById("Kaupunki").selectedIndex].value
+						});
+					}.bind(this),
+					error: function(xhr, status, err) {
+						console.log(status, err.toString());
+					}.bind(this)
+				})
+			}
+			
+			render() {
+				return (<div>{this.state.mittausarvot}
+					<label>Kaupunki</label>
+					<select id="Kaupunki" name="Kaupunki" onChange={this.handleChange}>
+					<option value="Jyväskylä">Jyväskylä</option>
+					<option value="Kuopio">Kuopio</option>
+					<option value="Tampere">Tampere</option>
+					</select>
+					
+					<table><tbody>
+					<tr><th>Säätieto</th><th>Mittaus</th></tr>
+					<tr><td>Ilman lämpötila</td><td>{mittausarvot.ILMA} °C</td></tr>
+					<tr><td>Tien lämpötila</td><td>{mittausarvot.TIE_1} °C</td></tr>
+					<tr><td>Maan lämpötila</td><td>{mittausarvot.MAA_1} °C</td></tr>
+					<tr><td>Tuulennopeus</td><td>{mittausarvot.KESKITUULI} m/s</td></tr>
+					<tr><td>Tuulen suunta</td><td>{mittausarvot.TUULENSUUNTA} °</td></tr>
+					<tr><td>Ilmankosteus</td><td>{mittausarvot.ILMAN_KOSTEUS} %</td></tr>
+					<tr><td>Näkyvyys</td><td>{mittausarvot.NAKYVYYS} km</td></tr>
+				</tbody></table></div>);
+			}
+		}
+
+		ReactDOM.render(
+			<div>
+				<Taulu />
+			</div>,
+			document.getElementById('saakomponentti')
+		);
+    </script>
+	
+</body>
